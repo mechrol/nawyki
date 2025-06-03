@@ -1,120 +1,82 @@
-import React, { useState } from 'react';
-import { useHabit } from '../context/HabitContext';
-import HabitCard from './HabitCard';
-import { FaClipboardList } from 'react-icons/fa';
-import { motion, AnimatePresence } from 'framer-motion';
-import { HabitCategory } from '../types';
+import { useState } from 'react'
+import { useHabitStore } from '../store/habitStore'
+import HabitItem from './HabitItem'
+import { format, startOfWeek, addDays } from 'date-fns'
+import { motion } from 'framer-motion'
 
 const HabitList = () => {
-  const { habits } = useHabit();
-  const [filter, setFilter] = useState<HabitCategory | 'all'>('all');
-
-  const filteredHabits = filter === 'all' 
-    ? habits 
-    : habits.filter(habit => habit.category === filter);
-
-  const containerVariants = {
+  const { habits } = useHabitStore()
+  const [selectedDate, setSelectedDate] = useState(new Date())
+  
+  // Generate week days for the header
+  const startOfCurrentWeek = startOfWeek(selectedDate, { weekStartsOn: 1 }) // Start from Monday
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const day = addDays(startOfCurrentWeek, i)
+    return {
+      date: day,
+      dayName: format(day, 'EEE'),
+      dayNumber: format(day, 'd'),
+      isToday: format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd')
+    }
+  })
+  
+  // Filter habits based on their frequency
+  const filteredHabits = habits.filter(habit => {
+    // Show all habits for now
+    return true
+  })
+  
+  const container = {
     hidden: { opacity: 0 },
-    visible: {
+    show: {
       opacity: 1,
       transition: {
         staggerChildren: 0.1
       }
     }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        type: "spring",
-        stiffness: 100
-      }
-    },
-    exit: { 
-      opacity: 0, 
-      y: -20,
-      transition: {
-        duration: 0.2
-      }
-    }
-  };
-
+  }
+  
   return (
-    <section className="habit-list-section">
-      <div className="section-header">
-        <h2 className="section-title">Your Habits</h2>
-        
-        <div className="tab-group">
-          <button 
-            className={`tab ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            All
-          </button>
-          <button 
-            className={`tab ${filter === 'health' ? 'active' : ''}`}
-            onClick={() => setFilter('health')}
-          >
-            Health
-          </button>
-          <button 
-            className={`tab ${filter === 'fitness' ? 'active' : ''}`}
-            onClick={() => setFilter('fitness')}
-          >
-            Fitness
-          </button>
-          <button 
-            className={`tab ${filter === 'productivity' ? 'active' : ''}`}
-            onClick={() => setFilter('productivity')}
-          >
-            Productivity
-          </button>
+    <div className="card">
+      <div className="p-4 border-b dark:border-gray-700">
+        <div className="grid grid-cols-8 gap-2">
+          <div className="col-span-1"></div>
+          {weekDays.map((day, index) => (
+            <div 
+              key={index} 
+              className={`col-span-1 text-center ${day.isToday ? 'font-bold text-primary-600' : ''}`}
+            >
+              <div className="text-sm">{day.dayName}</div>
+              <div className={`text-lg ${day.isToday ? 'bg-primary-100 dark:bg-primary-900 rounded-full w-8 h-8 flex items-center justify-center mx-auto' : ''}`}>
+                {day.dayNumber}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
       
-      {habits.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">
-            <FaClipboardList />
-          </div>
-          <h3 className="empty-state-title">No habits yet</h3>
-          <p className="empty-state-description">
-            Start by adding a new habit above to begin tracking your progress.
-          </p>
-        </div>
-      ) : filteredHabits.length === 0 ? (
-        <div className="empty-state">
-          <h3 className="empty-state-title">No habits in this category</h3>
-          <p className="empty-state-description">
-            Try selecting a different category or add a new habit.
-          </p>
-        </div>
-      ) : (
+      {filteredHabits.length > 0 ? (
         <motion.div 
-          className="grid"
-          variants={containerVariants}
+          className="divide-y dark:divide-gray-700"
+          variants={container}
           initial="hidden"
-          animate="visible"
+          animate="show"
         >
-          <AnimatePresence>
-            {filteredHabits.map(habit => (
-              <motion.div 
-                key={habit.id}
-                variants={itemVariants}
-                exit="exit"
-                layout
-              >
-                <HabitCard habit={habit} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+          {filteredHabits.map(habit => (
+            <HabitItem 
+              key={habit.id} 
+              habit={habit} 
+              weekDays={weekDays}
+            />
+          ))}
         </motion.div>
+      ) : (
+        <div className="p-8 text-center">
+          <p className="text-gray-500 dark:text-gray-400">No habits to display</p>
+        </div>
       )}
-    </section>
-  );
-};
+    </div>
+  )
+}
 
-export default HabitList;
+export default HabitList
