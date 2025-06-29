@@ -6,6 +6,7 @@ import AddHabitModal from './components/AddHabitModal'
 import StatsPanel from './components/StatsPanel'
 import AchievementsPanel from './components/AchievementsPanel'
 import AnalyticsDashboard from './components/AnalyticsDashboard'
+import FileImportPanel from './components/FileImportPanel'
 import { useHabits } from './hooks/useHabits'
 import { useGameification } from './hooks/useGameification'
 import { useTheme } from './hooks/useTheme'
@@ -14,7 +15,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('habits')
   const [showAddModal, setShowAddModal] = useState(false)
   const { theme, toggleTheme } = useTheme()
-  const { habits, addHabit, toggleHabit, deleteHabit, updateHabit } = useHabits()
+  const { habits, addHabit, toggleHabit, deleteHabit, updateHabit, addMultipleHabits } = useHabits()
   const { userStats, achievements, checkAchievements } = useGameification(habits)
 
   useEffect(() => {
@@ -24,7 +25,8 @@ function App() {
   const tabs = [
     { id: 'habits', label: 'Habits', icon: '🎯' },
     { id: 'analytics', label: 'Analytics', icon: '📊' },
-    { id: 'achievements', label: 'Achievements', icon: '🏆' }
+    { id: 'achievements', label: 'Achievements', icon: '🏆' },
+    { id: 'import', label: 'Import from file', icon: '📁' }
   ]
 
   return (
@@ -107,6 +109,18 @@ function App() {
                 transition={{ duration: 0.3 }}
               >
                 <AchievementsPanel achievements={achievements} detailed={true} />
+              </motion.div>
+            )}
+
+            {activeTab === 'import' && (
+              <motion.div
+                key="import"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                <FileImportPanel onImportHabits={addMultipleHabits} />
               </motion.div>
             )}
           </AnimatePresence>

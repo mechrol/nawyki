@@ -76,6 +76,18 @@ export const useHabits = () => {
     setHabits(prev => [...prev, newHabit])
   }
 
+  const addMultipleHabits = (habitsData) => {
+    const newHabits = habitsData.map((habitData, index) => ({
+      id: (Date.now() + index).toString(),
+      ...habitData,
+      completedDates: [],
+      currentStreak: 0,
+      longestStreak: 0,
+      createdAt: new Date().toISOString()
+    }))
+    setHabits(prev => [...prev, ...newHabits])
+  }
+
   const updateHabit = (habitId, updates) => {
     setHabits(prev => prev.map(habit => 
       habit.id === habitId ? { ...habit, ...updates } : habit
@@ -153,6 +165,7 @@ export const useHabits = () => {
   return {
     habits,
     addHabit,
+    addMultipleHabits,
     updateHabit,
     deleteHabit,
     toggleHabit
